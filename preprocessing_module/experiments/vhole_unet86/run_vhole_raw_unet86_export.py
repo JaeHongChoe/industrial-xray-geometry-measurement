@@ -884,9 +884,9 @@ def run(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--raw-dir", type=Path, default=BASE_DIR / "preprocessing_module" / "raw_data")
+    parser.add_argument("--raw-dir", type=Path, default=BASE_DIR / "raw_data")
     parser.add_argument("--model-dir", type=Path, default=BASE_DIR / "v7_86_unet_rot_model_export")
-    parser.add_argument("--out-dir", type=Path, default=BASE_DIR / "preprocessing_module" / "vhole_raw_unet86_rot_results")
+    parser.add_argument("--out-dir", type=Path, default=BASE_DIR / "vhole_raw_unet86_rot_results")
     parser.add_argument("--device", default=None)
     parser.add_argument("--hv-crop-mode", choices=["auto", "crop", "full"], default="auto")
     parser.add_argument("--save-hv", action="store_true")

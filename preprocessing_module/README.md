@@ -111,8 +111,8 @@ Plate와 Mesh의 원 정보를 찾습니다.
 
 핵심 로직:
 
-- Hough circle 기반 후보 생성
-- contour/fallback 기반 보정
+- Plate: Canny edge → contour → fitEllipse 후보 생성, 실패 시 최대 면적 contour fallback
+- Mesh: HV 이미지 warpPolar 방사형 프로파일로 경계 검출 후 최소제곱 원 피팅
 - Plate와 Mesh 반지름, 중심 좌표 산출
 - Plate-Mesh 편심을 px 및 mm 단위로 계산
 
@@ -393,7 +393,7 @@ pip install -r training/requirements-training.txt
 ## 메모
 
 - 이 폴더는 공개용 Python 알고리즘 패키지입니다.
-- 고객사 POC용 standalone HTML은 이 정리본에 포함하지 않았습니다.
+- 별도 배포용 standalone HTML 데모는 이 폴더에 포함하지 않았습니다 (브라우저 POC는 루트의 `poc_sample_page/` 참고).
 - 기존 템플릿 기반 V-hole 코드는 `src/xray_3pin_detector/vhole.py`에 보존했습니다.
 - 현재 메인 V-hole 추론은 `src/xray_3pin_detector/vhole_v7.py`의 ONNX 딥러닝 로직입니다.
 - 커밋하기 전에는 `git status`에서 의도하지 않은 Raw Data나 output 파일이 잡히지 않는지 반드시 확인합니다.
