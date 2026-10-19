@@ -1,0 +1,2968 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>V홀 템플릿 크롭 프로토타입</title>
+  <meta
+    name="description"
+    content="V홀 템플릿 크롭 프로토타입. 단일 X-ray 이미지를 분석하고 상단/하단 V홀 템플릿을 저장합니다."
+  />
+  <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
+  <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+  <style>
+:root {
+  --bg: #f5f2ea;
+  --panel: #fffdf8;
+  --panel-alt: #f1eee6;
+  --line: #d9d0c2;
+  --ink: #1e2b25;
+  --muted: #637067;
+  --accent: #0f766e;
+  --accent-strong: #0a5b55;
+  --accent-soft: #d6ece9;
+  --danger: #c2410c;
+  --shadow: 0 18px 40px rgba(33, 42, 35, 0.08);
+  --radius: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: radial-gradient(circle at top left, #fbf8f1, #f1ece1 55%, #ede7d9);
+  color: var(--ink);
+  font-family:
+    "Apple SD Gothic Neo",
+    "Pretendard",
+    "Noto Sans KR",
+    sans-serif;
+}
+
+body {
+  padding: 20px;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.sidebar,
+.workspace {
+  min-width: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid rgba(96, 87, 68, 0.12);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.panel h1,
+.panel h2 {
+  margin: 0 0 12px;
+  line-height: 1.2;
+}
+
+.panel h1 {
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+.panel h2 {
+  font-size: 17px;
+}
+
+.panel-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.hero-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.hero-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+}
+
+.hero-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(33, 42, 35, 0.12);
+  background: #fff;
+}
+
+.hero-copy {
+  min-width: 0;
+}
+
+.hero-copy h1 {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.hero-kicker {
+  margin-bottom: 4px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.hero-badge {
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.notice-card {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(15, 118, 110, 0.08), rgba(15, 118, 110, 0.03));
+  border: 1px solid rgba(15, 118, 110, 0.12);
+}
+
+.notice-card strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.notice-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.notice-card code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.quick-guide {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.quick-guide li + li {
+  margin-top: 4px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.field span {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.field input,
+.field select,
+.button-grid button {
+  font: inherit;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 12px;
+  padding: 11px 12px;
+  color: var(--ink);
+}
+
+.field input:focus,
+.field select:focus {
+  outline: 2px solid rgba(15, 118, 110, 0.18);
+  border-color: var(--accent);
+}
+
+.secondary-button {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 12px;
+  padding: 11px 12px;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.secondary-button:hover {
+  border-color: var(--accent);
+}
+
+.field-help {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.button-grid button {
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  color: white;
+  padding: 12px 10px;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.button-grid button:hover {
+  filter: brightness(1.03);
+}
+
+.button-grid button:disabled,
+.secondary-button:disabled,
+.field input:disabled,
+.field select:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: none;
+}
+
+.compact .status-list {
+  margin: 0;
+}
+
+.status-list {
+  display: grid;
+  gap: 10px;
+}
+
+.status-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--panel-alt);
+}
+
+.status-list dt {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.status-list dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: right;
+}
+
+.workspace {
+  display: grid;
+  gap: 18px;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.preview-card {
+  background: var(--panel);
+  border: 1px solid rgba(96, 87, 68, 0.12);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.preview-card header {
+  padding: 16px 18px 10px;
+}
+
+.preview-card h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.preview-frame {
+  position: relative;
+  min-height: 520px;
+  background:
+    linear-gradient(180deg, rgba(15, 118, 110, 0.06), rgba(15, 118, 110, 0)),
+    #f8f6ef;
+  border-top: 1px solid rgba(96, 87, 68, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.preview-frame img,
+.preview-frame canvas {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(34, 38, 33, 0.08);
+}
+
+.preview-frame img {
+  display: none;
+  cursor: zoom-in;
+}
+
+.preview-frame img.clickable-crop {
+  cursor: zoom-in;
+}
+
+.preview-frame img.is-visible {
+  display: block;
+}
+
+.crop-preview-frame {
+  min-height: 320px;
+}
+
+.crop-preview-frame img {
+  image-rendering: auto;
+}
+
+.canvas-frame canvas {
+  display: none;
+}
+
+.canvas-frame canvas.is-visible {
+  display: block;
+}
+
+.placeholder {
+  position: absolute;
+  inset: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  border: 1px dashed rgba(99, 112, 103, 0.36);
+  border-radius: 14px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.placeholder.is-hidden {
+  display: none;
+}
+
+.zoom-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.zoom-modal.is-open {
+  display: flex;
+}
+
+.zoom-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 23, 22, 0.72);
+  backdrop-filter: blur(2px);
+}
+
+.zoom-dialog {
+  position: relative;
+  width: min(1400px, calc(100vw - 48px));
+  height: min(900px, calc(100vh - 48px));
+  background: #f7f4ec;
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.zoom-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(96, 87, 68, 0.12);
+  background: #fffdf8;
+}
+
+.zoom-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.zoom-actions button {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  padding: 9px 12px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.zoom-actions button:hover {
+  border-color: var(--accent);
+}
+
+.zoom-slot-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zoom-slot-button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  padding: 8px 12px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.zoom-slot-button:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.zoom-slot-button.is-active {
+  background: var(--accent-soft);
+  border-color: rgba(15, 118, 110, 0.35);
+  color: var(--accent-strong);
+}
+
+.zoom-slot-button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.crop-edit-dialog {
+  width: min(980px, calc(100vw - 48px));
+  height: min(840px, calc(100vh - 48px));
+}
+
+.crop-edit-header {
+  display: grid;
+  gap: 4px;
+}
+
+.crop-edit-hint {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.crop-edit-body {
+  padding: 22px;
+  background:
+    linear-gradient(180deg, rgba(15, 118, 110, 0.04), rgba(15, 118, 110, 0)),
+    #f7f4ec;
+}
+
+.crop-edit-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 680px;
+  border-radius: 18px;
+  border: 1px solid rgba(96, 87, 68, 0.12);
+  background:
+    linear-gradient(180deg, rgba(15, 118, 110, 0.04), rgba(15, 118, 110, 0)),
+    #fbf8f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+}
+
+.crop-edit-stage canvas {
+  display: none;
+  width: min(100%, 720px);
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 42px rgba(34, 38, 33, 0.14);
+  cursor: crosshair;
+  image-rendering: auto;
+}
+
+.crop-edit-stage canvas.is-visible {
+  display: block;
+}
+
+.crop-edit-stage canvas.is-dragging {
+  cursor: grabbing;
+}
+
+.zoom-viewport {
+  overflow: hidden;
+  position: relative;
+  padding: 24px;
+  background:
+    linear-gradient(180deg, rgba(15, 118, 110, 0.04), rgba(15, 118, 110, 0)),
+    #f7f4ec;
+  cursor: grab;
+  user-select: none;
+}
+
+.zoom-viewport.is-dragging {
+  cursor: grabbing;
+}
+
+.zoom-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.zoom-viewport img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  max-width: none;
+  max-height: none;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.16);
+  background: white;
+  border-radius: 14px;
+  pointer-events: none;
+  transform-origin: top left;
+  will-change: transform;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 18px;
+}
+
+.result-panel h2 {
+  margin-bottom: 14px;
+}
+
+.metric-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.metric-table tr + tr {
+  border-top: 1px solid rgba(96, 87, 68, 0.12);
+}
+
+.metric-table th,
+.metric-table td {
+  padding: 11px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.metric-table th {
+  width: 180px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.metric-table td {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.log-view {
+  margin: 0;
+  min-height: 240px;
+  max-height: 420px;
+  overflow: auto;
+  padding: 14px;
+  border-radius: 14px;
+  background: #17211d;
+  color: #d8ede9;
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 1280px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-grid,
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .zoom-dialog {
+    width: calc(100vw - 24px);
+    height: calc(100vh - 24px);
+  }
+}
+
+.residual-frame {
+  min-height: 360px;
+}
+
+.residual-frame canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(34, 38, 33, 0.08);
+  cursor: default;
+}
+
+.preview-subtitle {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.result-grid.template-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
+}
+
+.preview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.preview-head-copy {
+  min-width: 0;
+}
+
+.preview-action-button {
+  flex: 0 0 auto;
+  padding: 9px 12px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+#overlayPreview {
+  cursor: zoom-in;
+}
+
+.interaction-hint {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.08);
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.interaction-hint.is-top {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.interaction-hint.is-bottom {
+  background: rgba(217, 70, 239, 0.12);
+  color: #a21caf;
+}
+
+.slot-status {
+  font-weight: 800;
+}
+
+.slot-status.is-top {
+  color: #b45309;
+}
+
+.slot-status.is-bottom {
+  color: #a21caf;
+}
+
+#overlayCard {
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+#overlayCard.is-top-target {
+  border-color: rgba(245, 158, 11, 0.32);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.16), var(--shadow);
+}
+
+#overlayCard.is-bottom-target {
+  border-color: rgba(217, 70, 239, 0.28);
+  box-shadow: 0 0 0 2px rgba(217, 70, 239, 0.14), var(--shadow);
+}
+
+.crop-frame {
+  min-height: 320px;
+}
+
+.crop-frame img.is-visible {
+  display: block;
+  width: min(100%, 420px);
+  max-width: min(100%, 420px);
+  height: auto;
+  image-rendering: pixelated;
+  border-radius: 14px;
+  box-shadow: 0 16px 36px rgba(34, 38, 33, 0.12);
+}
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(245, 242, 234, 0.92);
+  backdrop-filter: blur(6px);
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 5px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin-bottom: 24px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.loading-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 8px;
+  text-align: center;
+}
+
+.zoom-selection-hint {
+  margin-right: auto;
+  margin-left: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.08);
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.single-image-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.file-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-picker-button {
+  flex: 0 0 auto;
+}
+
+.file-picker-name {
+  min-width: 0;
+  flex: 1 1 auto;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.3;
+  word-break: break-all;
+}
+
+  </style>
+</head>
+<body>
+  <div id="loadingOverlay" class="loading-overlay">
+    <div id="loadingSpinner" class="loading-spinner"></div>
+    <div id="loadingText" class="loading-text">Python 엔진 로딩 중...</div>
+    <div id="loadingSub" class="loading-sub">
+      Pyodide + OpenCV + NumPy + Pillow 다운로드 중입니다.<br />
+      처음 실행 시 30-60초 소요, 이후 캐시로 빨라집니다.
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="panel hero-panel">
+        <div class="hero-head">
+          <div class="hero-copy">
+            <div class="hero-kicker">X-Ray Template Tool</div>
+            <h1>V홀 템플릿 크롭</h1>
+          </div>
+        </div>
+        <div class="hero-badge">PYSCRIPT STANDALONE</div>
+        <p class="panel-note">
+          서버 없이 브라우저에서 직접 실행됩니다. 대표 이미지 1장을 불러와
+          상단과 하단 위치를 직접 선택하고 V홀 템플릿을 저장할 수 있습니다.
+        </p>
+        <div class="notice-card">
+          <strong>빠른 시작</strong>
+          <p>
+            이미지를 고르면 가이드 원이 자동으로 준비됩니다.
+            오버레이 확대창에서 상단과 하단을 찍고, 아래 미리보기를 확인한 뒤 저장하세요.
+          </p>
+        </div>
+        <ol class="quick-guide">
+          <li>대표 이미지를 선택합니다.</li>
+          <li>가이드 오버레이 확대창에서 상단과 하단을 직접 선택합니다.</li>
+          <li>아래 위치 확인 미리보기를 보고 현재 템플릿을 저장합니다.</li>
+        </ol>
+      </div>
+
+      <div class="panel">
+        <h2>입력</h2>
+        <label class="field">
+          <span>단일 이미지</span>
+          <input id="singleImageInput" class="single-image-input" type="file" accept="image/*" />
+          <div class="file-picker-row">
+            <button id="singleImageButton" class="secondary-button file-picker-button" type="button">이미지 선택</button>
+            <div id="singleImageFileName" class="file-picker-name">선택한 이미지 없음</div>
+          </div>
+        </label>
+      </div>
+
+      <div class="panel">
+        <h2>설정</h2>
+        <label class="field">
+          <span>저장 제품명</span>
+          <input id="sourceKeyInput" type="text" placeholder="jigyu_white" />
+        </label>
+        <label class="field">
+          <span>가이드 원 분석 크기</span>
+          <input id="analysisSizeInput" type="number" min="256" step="64" value="1024" />
+        </label>
+      </div>
+
+      <div class="panel">
+        <h2>작업</h2>
+        <div class="button-grid">
+          <button id="resetSelectionButton" type="button" disabled>선택 초기화</button>
+          <button id="saveTemplateButton" type="button" disabled>현재 템플릿 저장</button>
+        </div>
+      </div>
+
+        <div class="panel compact">
+        <h2>현황</h2>
+        <dl class="status-list">
+          <div><dt>선택 이미지</dt><dd id="selectedImageName">없음</dd></div>
+          <div><dt>가이드 원</dt><dd id="guideCircleStatus">없음</dd></div>
+          <div><dt>선택 상태</dt><dd id="selectionStatus">없음</dd></div>
+        </dl>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <section class="preview-grid">
+        <article class="preview-card">
+          <header>
+            <div class="preview-head">
+              <div class="preview-head-copy">
+                <h2>원본</h2>
+              </div>
+              <button id="rawZoomButton" class="secondary-button preview-action-button" type="button" disabled>확대</button>
+            </div>
+          </header>
+          <div class="preview-frame">
+            <img id="rawPreview" alt="원본 미리보기" />
+            <div id="rawPlaceholder" class="placeholder">이미지를 선택하면 원본이 표시됩니다.</div>
+          </div>
+        </article>
+        <article id="overlayCard" class="preview-card is-top-target">
+          <header>
+            <div class="preview-head">
+              <div class="preview-head-copy">
+                <h2>가이드 오버레이</h2>
+              </div>
+              <button id="overlayZoomButton" class="secondary-button preview-action-button" type="button" disabled>확대</button>
+            </div>
+          </header>
+          <div class="preview-frame">
+            <img id="overlayPreview" alt="가이드 오버레이 미리보기" />
+            <div id="overlayPlaceholder" class="placeholder">이미지를 선택하면 가이드 오버레이가 자동으로 표시됩니다.</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="preview-grid">
+        <article class="preview-card">
+          <header>
+            <h2>상단 위치 확인</h2>
+          </header>
+          <div class="preview-frame crop-frame">
+            <img id="topCropPreview" alt="상단 crop 미리보기" />
+            <div id="topCropPlaceholder" class="placeholder">상단 위치를 선택해 주세요.</div>
+          </div>
+        </article>
+        <article class="preview-card">
+          <header>
+            <h2>하단 위치 확인</h2>
+          </header>
+          <div class="preview-frame crop-frame">
+            <img id="bottomCropPreview" alt="하단 crop 미리보기" />
+            <div id="bottomCropPlaceholder" class="placeholder">하단 위치를 선택해 주세요.</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="result-grid template-grid">
+        <article class="panel result-panel">
+          <h2>선택 정보</h2>
+          <table class="metric-table">
+            <tbody id="metricTableBody"></tbody>
+          </table>
+        </article>
+        <article class="panel result-panel">
+          <h2>실행 로그</h2>
+          <pre id="logView" class="log-view"></pre>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div style="display: none" aria-hidden="true">
+    <canvas id="residualCanvas"></canvas>
+    <div id="residualPlaceholder" class="placeholder"></div>
+  </div>
+
+  <div id="zoomModal" class="zoom-modal">
+    <div class="zoom-backdrop"></div>
+    <div class="zoom-dialog">
+      <div class="zoom-toolbar">
+        <strong id="zoomTitle">이미지 확대 보기</strong>
+        <div id="zoomSelectionHint" class="zoom-selection-hint">드래그로 이동하고 휠로 확대/축소할 수 있습니다.</div>
+        <div class="zoom-slot-actions">
+          <button id="zoomTopSlotButton" type="button" class="zoom-slot-button is-active">상단 선택</button>
+          <button id="zoomBottomSlotButton" type="button" class="zoom-slot-button">하단 선택</button>
+        </div>
+        <div class="zoom-actions">
+          <button id="zoomOutButton" type="button">축소</button>
+          <button id="zoomResetButton" type="button">화면맞춤</button>
+          <button id="zoomInButton" type="button">확대</button>
+          <button id="zoomCloseButton" type="button">닫기</button>
+        </div>
+      </div>
+      <div id="zoomViewport" class="zoom-viewport">
+        <div id="zoomContent" class="zoom-content">
+          <img id="zoomImage" alt="확대 이미지" draggable="false" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+const state = {
+  pyReady: false,
+  isRunning: false,
+  pendingAutoAnalyze: false,
+  currentNamingParts: null,
+  singleImageFile: null,
+  currentImageFile: null,
+  currentImageUrl: null,
+  overlayUrl: null,
+  topCropUrl: null,
+  bottomCropUrl: null,
+  residualImage: null,
+  analysis: null,
+  zoomScale: 1,
+  zoomFitScale: 1,
+  zoomPanX: 0,
+  zoomPanY: 0,
+  zoomDrag: null,
+  zoomPickEnabled: false,
+  zoomMode: "inspect",
+  zoomSuppressClick: false,
+  activeSlot: "top",
+};
+
+const MIN_ANALYSIS_SIZE = 256;
+const MAX_ANALYSIS_SIZE = 4096;
+const ANALYSIS_SIZE_STEP = 64;
+
+const elements = {
+  singleImageInput: document.getElementById("singleImageInput"),
+  singleImageButton: document.getElementById("singleImageButton"),
+  singleImageFileName: document.getElementById("singleImageFileName"),
+  sourceKeyInput: document.getElementById("sourceKeyInput"),
+  analysisSizeInput: document.getElementById("analysisSizeInput"),
+  resetSelectionButton: document.getElementById("resetSelectionButton"),
+  saveTemplateButton: document.getElementById("saveTemplateButton"),
+  rawZoomButton: document.getElementById("rawZoomButton"),
+  overlayZoomButton: document.getElementById("overlayZoomButton"),
+  rawPreview: document.getElementById("rawPreview"),
+  rawPlaceholder: document.getElementById("rawPlaceholder"),
+  overlayPreview: document.getElementById("overlayPreview"),
+  overlayPlaceholder: document.getElementById("overlayPlaceholder"),
+  overlayInteractionHint: document.getElementById("overlayInteractionHint"),
+  residualCanvas: document.getElementById("residualCanvas"),
+  residualPlaceholder: document.getElementById("residualPlaceholder"),
+  topCropPreview: document.getElementById("topCropPreview"),
+  topCropPlaceholder: document.getElementById("topCropPlaceholder"),
+  bottomCropPreview: document.getElementById("bottomCropPreview"),
+  bottomCropPlaceholder: document.getElementById("bottomCropPlaceholder"),
+  metricTableBody: document.getElementById("metricTableBody"),
+  logView: document.getElementById("logView"),
+  selectedImageName: document.getElementById("selectedImageName"),
+  guideCircleStatus: document.getElementById("guideCircleStatus"),
+  selectionStatus: document.getElementById("selectionStatus"),
+  loadingOverlay: document.getElementById("loadingOverlay"),
+  loadingSpinner: document.getElementById("loadingSpinner"),
+  loadingText: document.getElementById("loadingText"),
+  loadingSub: document.getElementById("loadingSub"),
+  zoomModal: document.getElementById("zoomModal"),
+  zoomImage: document.getElementById("zoomImage"),
+  zoomContent: document.getElementById("zoomContent"),
+  zoomTitle: document.getElementById("zoomTitle"),
+  zoomViewport: document.getElementById("zoomViewport"),
+  zoomInButton: document.getElementById("zoomInButton"),
+  zoomOutButton: document.getElementById("zoomOutButton"),
+  zoomResetButton: document.getElementById("zoomResetButton"),
+  zoomCloseButton: document.getElementById("zoomCloseButton"),
+  zoomTopSlotButton: document.getElementById("zoomTopSlotButton"),
+  zoomBottomSlotButton: document.getElementById("zoomBottomSlotButton"),
+  zoomSelectionHint: document.getElementById("zoomSelectionHint"),
+  overlayCard: document.getElementById("overlayCard"),
+};
+
+function normalizeText(value) {
+  return typeof value === "string" ? value.normalize("NFC") : value;
+}
+
+function log(message) {
+  const stamp = new Date().toLocaleTimeString("ko-KR", { hour12: false });
+  const line = `[${stamp}] ${normalizeText(message)}`;
+  const current = elements.logView.textContent.trim();
+  elements.logView.textContent = current ? `${current}\n${line}` : line;
+  elements.logView.scrollTop = elements.logView.scrollHeight;
+}
+
+function formatNumber(value, digits = 3) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "-";
+  return Number(value).toFixed(digits);
+}
+
+function normalizeAnalysisSizeValue(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 1024;
+  const rounded = Math.round(numeric / ANALYSIS_SIZE_STEP) * ANALYSIS_SIZE_STEP;
+  return Math.max(MIN_ANALYSIS_SIZE, Math.min(MAX_ANALYSIS_SIZE, rounded));
+}
+
+function syncAnalysisSizeInput() {
+  const normalized = normalizeAnalysisSizeValue(elements.analysisSizeInput.value);
+  elements.analysisSizeInput.value = String(normalized);
+  return normalized;
+}
+
+function getActiveSlotKey() {
+  return state.activeSlot === "bottom" ? "bottom" : "top";
+}
+
+function getActiveSlotLabel() {
+  return getActiveSlotKey() === "bottom" ? "하단" : "상단";
+}
+
+function sanitizeFilenameComponent(value, fallback = "template") {
+  const text = normalizeText(value || "").trim();
+  if (!text) return fallback;
+  const cleaned = text
+    .replace(/[\/\\:*?"<>|\n\r\t]/g, "_")
+    .replace(/\s+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^[_ .]+|[_ .]+$/g, "");
+  return cleaned || fallback;
+}
+
+function stemFromFileName(fileName) {
+  const name = normalizeText(fileName || "");
+  const dot = name.lastIndexOf(".");
+  return dot >= 0 ? name.slice(0, dot) : name;
+}
+
+function parseImageNamingParts(fileName) {
+  const stem = stemFromFileName(fileName);
+  const match = stem.match(/^(?<product>.+)-(?<shot>[A-Z]\d+)$/i);
+  if (match && match.groups) {
+    return {
+      stem,
+      productName: normalizeText(match.groups.product),
+      shotCode: normalizeText(match.groups.shot).toUpperCase(),
+    };
+  }
+  return {
+    stem,
+    productName: stem,
+    shotCode: null,
+  };
+}
+
+function normalizeRuntimeErrorMessage(error) {
+  const raw = normalizeText(error?.message || String(error || ""));
+  if (!raw) return "알 수 없는 오류가 발생했습니다.";
+
+  if (raw.includes("Guide circle detection failed.")) {
+    return "가이드 원을 찾지 못했습니다. 원판이 선명하게 보이는 이미지를 선택해 주세요.";
+  }
+  if (raw.includes("Session not found.")) {
+    return "세션이 만료되었습니다. 이미지를 다시 분석해 주세요.";
+  }
+  if (raw.includes("residual 이미지를 불러오지 못했습니다.")) {
+    return "Residual 이미지를 만드는 중 문제가 발생했습니다.";
+  }
+
+  const taggedMatch = raw.match(/(?:RuntimeError|ValueError|TypeError):\\s*([^\\n]+)/);
+  if (taggedMatch && taggedMatch[1]) {
+    return taggedMatch[1].trim();
+  }
+
+  const firstLine = raw.split("\\n").map((line) => line.trim()).find(Boolean);
+  return firstLine || "알 수 없는 오류가 발생했습니다.";
+}
+
+function shouldReportConsoleError(error) {
+  const raw = normalizeText(error?.message || String(error || ""));
+  return !(
+    raw.includes("Guide circle detection failed.") ||
+    raw.includes("Session not found.") ||
+    raw.includes("residual 이미지를 불러오지 못했습니다.")
+  );
+}
+
+function assertAnalyzeResultShape(result) {
+  if (!result || !result.session_id) {
+    throw new Error("분석 결과에 세션 정보가 없습니다.");
+  }
+  if (!result.raw_png || !result.residual_png) {
+    throw new Error("분석 결과 이미지 생성에 실패했습니다.");
+  }
+  if (!result.selection_response) {
+    throw new Error("분석 결과 선택 정보가 없습니다.");
+  }
+}
+
+function readFileAsBytes(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(new Uint8Array(reader.result));
+    reader.onerror = () => reject(new Error("파일을 읽지 못했습니다."));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function bytesToBlobUrl(bytes, mimeType = "image/png") {
+  if (!bytes) return null;
+  return URL.createObjectURL(new Blob([bytes], { type: mimeType }));
+}
+
+function revokeUrl(url) {
+  if (url) URL.revokeObjectURL(url);
+}
+
+function setImagePreview(target, placeholder, src) {
+  if (!src) {
+    target.classList.remove("is-visible");
+    target.removeAttribute("src");
+    placeholder.classList.remove("is-hidden");
+    return;
+  }
+  target.src = src;
+  target.classList.add("is-visible");
+  placeholder.classList.add("is-hidden");
+}
+
+function clearResidualCanvas() {
+  const canvas = elements.residualCanvas;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width || 1, canvas.height || 1);
+  elements.residualPlaceholder.classList.remove("is-hidden");
+}
+
+function updateCounts() {
+  if (elements.singleImageFileName) {
+    elements.singleImageFileName.textContent = state.currentImageFile
+      ? normalizeText(state.currentImageFile.name)
+      : "선택한 이미지 없음";
+  }
+  elements.selectedImageName.textContent = state.currentImageFile ? normalizeText(state.currentImageFile.name) : "없음";
+  elements.guideCircleStatus.textContent = state.analysis?.selectionSummary?.guide_circle ? "검출됨" : "없음";
+  elements.selectionStatus.textContent = describeSelectionStatus();
+  updateActiveSlotUi();
+  updateInteractionHint();
+  updateActionStates();
+}
+
+function describeSelectionStatus() {
+  const summary = state.analysis?.selectionSummary;
+  if (!summary) return "없음";
+  const hasTop = Boolean(summary.top);
+  const hasBottom = Boolean(summary.bottom);
+  if (hasTop && hasBottom) return "상단/하단 선택 완료";
+  if (hasTop) return "상단만 선택";
+  if (hasBottom) return "하단만 선택";
+  return "없음";
+}
+
+function updateActionStates() {
+  const hasCurrentImage = Boolean(state.currentImageFile);
+  const hasAnalysis = Boolean(state.analysis?.sessionId);
+  const hasCompleteSelection = Boolean(state.analysis?.selectionSummary?.top && state.analysis?.selectionSummary?.bottom);
+  const hasOverlay = Boolean(state.overlayUrl);
+  const blocked = state.isRunning || !state.pyReady;
+
+  elements.singleImageInput.disabled = blocked;
+  if (elements.singleImageButton) {
+    elements.singleImageButton.disabled = blocked;
+  }
+  elements.sourceKeyInput.disabled = blocked;
+  elements.analysisSizeInput.disabled = blocked;
+
+  elements.resetSelectionButton.disabled = blocked || !hasAnalysis;
+  elements.saveTemplateButton.disabled = blocked || !hasCompleteSelection;
+  elements.rawZoomButton.disabled = !hasCurrentImage;
+  elements.overlayZoomButton.disabled = !hasOverlay;
+}
+
+function updateInteractionHint() {
+  if (!elements.overlayInteractionHint) return;
+  if (!state.currentImageFile) {
+    elements.overlayInteractionHint.textContent = "이미지를 선택하면 자동으로 가이드 원을 찾고 오버레이를 준비합니다.";
+    return;
+  }
+  if (!state.pyReady) {
+    elements.overlayInteractionHint.textContent = "Python 엔진 준비 후 현재 이미지를 자동 분석합니다.";
+    return;
+  }
+  if (state.isRunning || state.pendingAutoAnalyze) {
+    elements.overlayInteractionHint.textContent = "현재 이미지를 자동 분석 중입니다. 완료되면 오버레이 확대창에서 상단/하단을 고를 수 있습니다.";
+    return;
+  }
+  if (!state.analysis?.sessionId) {
+    elements.overlayInteractionHint.textContent = "가이드 원 분석 결과가 없습니다. 다른 이미지를 고르거나 분석 크기를 바꾸면 다시 자동 분석합니다.";
+    return;
+  }
+  const slotLabel = getActiveSlotLabel();
+  elements.overlayInteractionHint.textContent = `현재 ${slotLabel} 슬롯을 고르는 중입니다. 오버레이 확대창에서 클릭한 좌표를 그대로 사용합니다. 닫고 저장해 주세요.`;
+}
+
+function updateActiveSlotUi() {
+  const slotKey = getActiveSlotKey();
+  if (elements.overlayInteractionHint) {
+    elements.overlayInteractionHint.className = `interaction-hint is-${slotKey}`;
+  }
+  if (elements.overlayCard) {
+    elements.overlayCard.classList.toggle("is-top-target", slotKey === "top");
+    elements.overlayCard.classList.toggle("is-bottom-target", slotKey === "bottom");
+  }
+  if (elements.zoomTopSlotButton && elements.zoomBottomSlotButton) {
+    elements.zoomTopSlotButton.classList.toggle("is-active", slotKey === "top");
+    elements.zoomBottomSlotButton.classList.toggle("is-active", slotKey === "bottom");
+  }
+}
+
+function setBusy(isBusy) {
+  state.isRunning = isBusy;
+  updateActionStates();
+}
+
+function resetDerivedPreviews() {
+  revokeUrl(state.overlayUrl);
+  revokeUrl(state.topCropUrl);
+  revokeUrl(state.bottomCropUrl);
+  revokeUrl(state.analysis?.residualUrl);
+  state.overlayUrl = null;
+  state.topCropUrl = null;
+  state.bottomCropUrl = null;
+  state.residualImage = null;
+  setImagePreview(elements.overlayPreview, elements.overlayPlaceholder, null);
+  setImagePreview(elements.topCropPreview, elements.topCropPlaceholder, null);
+  setImagePreview(elements.bottomCropPreview, elements.bottomCropPlaceholder, null);
+  clearResidualCanvas();
+}
+
+function clearAnalysis() {
+  state.analysis = null;
+  resetDerivedPreviews();
+  updateMetricTable(null);
+  updateCounts();
+}
+
+function updateCurrentImage(file) {
+  revokeUrl(state.currentImageUrl);
+  state.currentImageFile = file || null;
+  state.pendingAutoAnalyze = false;
+  state.currentNamingParts = file ? parseImageNamingParts(file.name) : null;
+  state.currentImageUrl = file ? URL.createObjectURL(file) : null;
+  setImagePreview(elements.rawPreview, elements.rawPlaceholder, state.currentImageUrl);
+  elements.sourceKeyInput.value = file
+    ? sanitizeFilenameComponent(state.currentNamingParts?.productName, "vhole_template")
+    : "";
+  clearAnalysis();
+  updateCounts();
+}
+
+async function triggerAutoAnalyze() {
+  if (!state.pendingAutoAnalyze || !state.currentImageFile || !state.pyReady || state.isRunning) return;
+  state.pendingAutoAnalyze = false;
+  updateCounts();
+  await runAnalyze();
+}
+
+function scheduleAutoAnalyze() {
+  if (!state.currentImageFile) {
+    state.pendingAutoAnalyze = false;
+    updateCounts();
+    return;
+  }
+  state.pendingAutoAnalyze = true;
+  updateCounts();
+  if (!state.pyReady || state.isRunning) {
+    return;
+  }
+  void triggerAutoAnalyze();
+}
+
+function updateMetricTable(summary) {
+  const rows = [];
+  if (summary) {
+    const naming = state.currentNamingParts;
+    rows.push(["이미지", normalizeText(summary.image_name || "-")]);
+    rows.push(["제품명", naming?.productName || "-"]);
+    rows.push(["샷 코드", naming?.shotCode || "-"]);
+    rows.push(["템플릿 크기", `${summary.patch_size?.width || "-"} x ${summary.patch_size?.height || "-"}`]);
+    rows.push([
+      "가이드 원",
+      summary.guide_circle
+        ? `cx ${formatNumber(summary.guide_circle.center_x_px, 1)} / cy ${formatNumber(summary.guide_circle.center_y_px, 1)} / r ${formatNumber(summary.guide_circle.radius_px, 1)} px`
+        : "-",
+    ]);
+    rows.push(["각도 차이", summary.angle_gap_deg != null ? `${formatNumber(summary.angle_gap_deg, 3)} deg` : "-"]);
+    rows.push(["상단", formatPointSummary(summary.top)]);
+    rows.push(["하단", formatPointSummary(summary.bottom)]);
+  }
+
+  elements.metricTableBody.innerHTML = "";
+  rows.forEach(([label, value]) => {
+    const row = document.createElement("tr");
+    const th = document.createElement("th");
+    const td = document.createElement("td");
+    th.textContent = label;
+    td.textContent = value;
+    row.appendChild(th);
+    row.appendChild(td);
+    elements.metricTableBody.appendChild(row);
+  });
+}
+
+function formatPointSummary(point) {
+  if (!point) return "선택 안 됨";
+  return [
+    `angle ${formatNumber(point.angle_deg, 3)} deg`,
+    `radius ${formatNumber(point.radius_px, 2)} px`,
+    `x ${formatNumber(point.x_px, 1)}`,
+    `y ${formatNumber(point.y_px, 1)}`,
+  ].join(" / ");
+}
+
+function buildSelectionPayload() {
+  return {
+    top: state.analysis?.selection?.top || null,
+    bottom: state.analysis?.selection?.bottom || null,
+  };
+}
+
+function cloneSelection(selection) {
+  return {
+    top: selection?.top ? { ...selection.top } : null,
+    bottom: selection?.bottom ? { ...selection.bottom } : null,
+  };
+}
+
+async function loadResidualImage(bytes) {
+  if (!bytes) return null;
+  const url = bytesToBlobUrl(bytes, "image/png");
+  try {
+    const image = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("residual 이미지를 불러오지 못했습니다."));
+      img.src = url;
+    });
+    return { image, url };
+  } catch (error) {
+    revokeUrl(url);
+    throw error;
+  }
+}
+
+function drawResidualCanvas() {
+  const canvas = elements.residualCanvas;
+  const ctx = canvas.getContext("2d");
+  const residualImage = state.residualImage;
+  if (!residualImage) {
+    clearResidualCanvas();
+    return;
+  }
+
+  canvas.width = residualImage.width;
+  canvas.height = residualImage.height;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(residualImage, 0, 0);
+
+  const top = state.analysis?.selectionSummary?.top;
+  const bottom = state.analysis?.selectionSummary?.bottom;
+  if (top) drawResidualMarker(ctx, top.angle_index, top.row_index, "#facc15", "T");
+  if (bottom) drawResidualMarker(ctx, bottom.angle_index, bottom.row_index, "#e879f9", "B");
+  elements.residualPlaceholder.classList.add("is-hidden");
+}
+
+function drawResidualMarker(ctx, x, y, color, label) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x, y, 7, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x - 10, y);
+  ctx.lineTo(x + 10, y);
+  ctx.moveTo(x, y - 10);
+  ctx.lineTo(x, y + 10);
+  ctx.stroke();
+  ctx.font = "bold 14px sans-serif";
+  ctx.fillText(label, x + 10, y - 10);
+  ctx.restore();
+}
+
+function renderZoomImage() {
+  const naturalWidth = elements.zoomImage.naturalWidth || 0;
+  const naturalHeight = elements.zoomImage.naturalHeight || 0;
+  if (!naturalWidth || !naturalHeight) return;
+  elements.zoomImage.style.width = `${naturalWidth}px`;
+  elements.zoomImage.style.height = `${naturalHeight}px`;
+  elements.zoomImage.style.transform = `translate(${state.zoomPanX}px, ${state.zoomPanY}px) scale(${state.zoomScale})`;
+}
+
+function getZoomViewportInnerSize() {
+  return {
+    width: Math.max(1, elements.zoomContent.clientWidth || elements.zoomViewport.clientWidth),
+    height: Math.max(1, elements.zoomContent.clientHeight || elements.zoomViewport.clientHeight),
+  };
+}
+
+function computeZoomFitScale() {
+  const naturalWidth = elements.zoomImage.naturalWidth || 0;
+  const naturalHeight = elements.zoomImage.naturalHeight || 0;
+  const { width: viewportWidth, height: viewportHeight } = getZoomViewportInnerSize();
+  if (!naturalWidth || !naturalHeight) return 1;
+  return Math.min(1, viewportWidth / naturalWidth, viewportHeight / naturalHeight);
+}
+
+function fitZoomToViewport() {
+  const naturalWidth = elements.zoomImage.naturalWidth || 0;
+  const naturalHeight = elements.zoomImage.naturalHeight || 0;
+  if (!naturalWidth || !naturalHeight) return;
+  const { width: viewportWidth, height: viewportHeight } = getZoomViewportInnerSize();
+  state.zoomFitScale = computeZoomFitScale();
+  state.zoomScale = state.zoomFitScale;
+  state.zoomPanX = (viewportWidth - naturalWidth * state.zoomScale) / 2;
+  state.zoomPanY = (viewportHeight - naturalHeight * state.zoomScale) / 2;
+  renderZoomImage();
+}
+
+function setZoomScale(scale, anchorX = null, anchorY = null) {
+  const nextScale = Math.min(8, Math.max(0.25, scale));
+  const currentScale = state.zoomScale || 1;
+  if (!elements.zoomModal.classList.contains("is-open")) {
+    state.zoomScale = nextScale;
+    renderZoomImage();
+    return;
+  }
+  if (anchorX == null || anchorY == null) {
+    const rect = elements.zoomContent.getBoundingClientRect();
+    anchorX = rect.left + rect.width / 2;
+    anchorY = rect.top + rect.height / 2;
+  }
+  const rect = elements.zoomContent.getBoundingClientRect();
+  const pointX = anchorX - rect.left;
+  const pointY = anchorY - rect.top;
+  const localX = (pointX - state.zoomPanX) / currentScale;
+  const localY = (pointY - state.zoomPanY) / currentScale;
+  state.zoomScale = nextScale;
+  state.zoomPanX = pointX - localX * nextScale;
+  state.zoomPanY = pointY - localY * nextScale;
+  renderZoomImage();
+}
+
+function updateZoomSelectionHint() {
+  if (!elements.zoomSelectionHint) return;
+  if (!state.zoomPickEnabled || !state.analysis?.sessionId) {
+    elements.zoomSelectionHint.textContent = "드래그로 이동하고 휠로 확대/축소할 수 있습니다.";
+    return;
+  }
+  const slotLabel = getActiveSlotLabel();
+  elements.zoomSelectionHint.textContent = `확대 이미지에서 ${slotLabel} 위치를 클릭하세요. 클릭한 좌표를 그대로 사용합니다. 선택 후 닫기를 누르면 저장할 수 있습니다.`;
+}
+
+function setActiveSlot(slotKey) {
+  const normalized = String(slotKey || "top") === "bottom" ? "bottom" : "top";
+  state.activeSlot = normalized;
+  updateActiveSlotUi();
+  updateInteractionHint();
+  updateZoomSelectionHint();
+}
+
+function openZoomModal(src, title, options = {}) {
+  if (!src) return;
+  state.zoomPickEnabled = Boolean(options.pickEnabled);
+  state.zoomMode = options.mode || "inspect";
+  state.zoomSuppressClick = false;
+  elements.zoomImage.src = src;
+  elements.zoomTitle.textContent = normalizeText(title);
+  if (elements.zoomTopSlotButton && elements.zoomBottomSlotButton) {
+    const canSelectSlot = Boolean(state.analysis?.sessionId);
+    elements.zoomTopSlotButton.disabled = !canSelectSlot;
+    elements.zoomBottomSlotButton.disabled = !canSelectSlot;
+  }
+  updateZoomSelectionHint();
+  updateActiveSlotUi();
+  elements.zoomModal.classList.add("is-open");
+  elements.zoomImage.onload = () => fitZoomToViewport();
+}
+
+function closeZoomModal() {
+  state.zoomDrag = null;
+  state.zoomFitScale = 1;
+  state.zoomPanX = 0;
+  state.zoomPanY = 0;
+  state.zoomPickEnabled = false;
+  state.zoomMode = "inspect";
+  state.zoomSuppressClick = false;
+  elements.zoomViewport.classList.remove("is-dragging");
+  elements.zoomModal.classList.remove("is-open");
+  elements.zoomImage.removeAttribute("src");
+  elements.zoomImage.style.width = "";
+  elements.zoomImage.style.height = "";
+  elements.zoomImage.style.transform = "";
+}
+
+function beginZoomDrag(event) {
+  if (!elements.zoomModal.classList.contains("is-open") || event.button !== 0) return;
+  event.preventDefault();
+  state.zoomSuppressClick = false;
+  state.zoomDrag = {
+    startX: event.clientX,
+    startY: event.clientY,
+    panX: state.zoomPanX,
+    panY: state.zoomPanY,
+  };
+  elements.zoomViewport.classList.add("is-dragging");
+}
+
+function updateZoomDrag(event) {
+  if (!state.zoomDrag) return;
+  event.preventDefault();
+  if (
+    Math.abs(event.clientX - state.zoomDrag.startX) > 3 ||
+    Math.abs(event.clientY - state.zoomDrag.startY) > 3
+  ) {
+    state.zoomSuppressClick = true;
+  }
+  state.zoomPanX = state.zoomDrag.panX + event.clientX - state.zoomDrag.startX;
+  state.zoomPanY = state.zoomDrag.panY + event.clientY - state.zoomDrag.startY;
+  renderZoomImage();
+}
+
+function endZoomDrag() {
+  state.zoomDrag = null;
+  elements.zoomViewport.classList.remove("is-dragging");
+}
+
+function getZoomImageCoordsFromEvent(event) {
+  const rect = elements.zoomContent.getBoundingClientRect();
+  const pointX = event.clientX - rect.left;
+  const pointY = event.clientY - rect.top;
+  const imageX = (pointX - state.zoomPanX) / Math.max(state.zoomScale, 1e-6);
+  const imageY = (pointY - state.zoomPanY) / Math.max(state.zoomScale, 1e-6);
+  const naturalWidth = elements.zoomImage.naturalWidth || 0;
+  const naturalHeight = elements.zoomImage.naturalHeight || 0;
+  if (!naturalWidth || !naturalHeight) return null;
+  if (imageX < 0 || imageY < 0 || imageX > naturalWidth || imageY > naturalHeight) return null;
+  return { x_px: imageX, y_px: imageY };
+}
+
+function showLoadingError(message) {
+  const detail = normalizeText(message || "알 수 없는 오류");
+  elements.loadingOverlay.style.display = "flex";
+  if (elements.loadingSpinner) {
+    elements.loadingSpinner.style.display = "none";
+  }
+  if (elements.loadingText) {
+    elements.loadingText.textContent = "Python 초기화에 실패했습니다.";
+  }
+  if (elements.loadingSub) {
+    elements.loadingSub.innerHTML = `${detail}<br />페이지를 새로고침한 뒤 다시 시도해 주세요.`;
+  }
+}
+
+async function applySelectionResponse(response, options = {}) {
+  if (!response) return;
+  revokeUrl(state.overlayUrl);
+  revokeUrl(state.topCropUrl);
+  revokeUrl(state.bottomCropUrl);
+
+  state.analysis.overlayPngBytes = response.overlay_png || null;
+  state.analysis.topCropPngBytes = response.top_crop_png || null;
+  state.analysis.bottomCropPngBytes = response.bottom_crop_png || null;
+  state.analysis.selection = cloneSelection(response.selection || state.analysis.selection);
+  state.overlayUrl = bytesToBlobUrl(response.overlay_png, "image/png");
+  state.topCropUrl = bytesToBlobUrl(response.top_preview_png || response.top_crop_png, "image/png");
+  state.bottomCropUrl = bytesToBlobUrl(response.bottom_preview_png || response.bottom_crop_png, "image/png");
+  state.analysis.selectionSummary = response.selection_summary;
+
+  setImagePreview(elements.overlayPreview, elements.overlayPlaceholder, state.overlayUrl);
+  setImagePreview(elements.topCropPreview, elements.topCropPlaceholder, state.topCropUrl);
+  setImagePreview(elements.bottomCropPreview, elements.bottomCropPlaceholder, state.bottomCropUrl);
+  if (elements.zoomModal.classList.contains("is-open") && state.zoomMode === "overlay-pick" && state.overlayUrl) {
+    elements.zoomImage.src = state.overlayUrl;
+    elements.zoomImage.onload = () => renderZoomImage();
+  }
+  updateMetricTable(response.selection_summary);
+  drawResidualCanvas();
+  updateCounts();
+
+  if (!options.suppressLog) {
+    log("선택 위치와 crop preview를 갱신했습니다.");
+  }
+}
+
+async function updateSelectionOnPython(selectionPayload, options = {}) {
+  if (!state.analysis?.sessionId) return;
+  const response = await window.vholeTemplateBridge.updateSelection(
+    state.analysis.sessionId,
+    JSON.stringify(selectionPayload),
+  );
+  if (!response || !response.selection_summary) {
+    throw new Error("선택 결과를 갱신하지 못했습니다.");
+  }
+  await applySelectionResponse(response, options);
+}
+
+async function runAnalyze() {
+  if (state.isRunning) {
+    log("이미 처리 중입니다.");
+    return;
+  }
+  if (!state.currentImageFile) {
+    log("먼저 이미지를 선택해 주세요.");
+    return;
+  }
+  if (!state.pyReady) {
+    log("Python 엔진이 아직 준비 중입니다.");
+    return;
+  }
+
+  try {
+    setBusy(true);
+    state.pendingAutoAnalyze = false;
+    updateCounts();
+    log(`V홀 템플릿 분석 시작: ${normalizeText(state.currentImageFile.name)}`);
+    const imageBytes = await readFileAsBytes(state.currentImageFile);
+    const analysisSize = syncAnalysisSizeInput();
+
+    const result = await window.vholeTemplateBridge.analyzeImage(
+      imageBytes,
+      normalizeText(state.currentImageFile.name),
+      analysisSize,
+    );
+    assertAnalyzeResultShape(result);
+
+    const residualLoaded = await loadResidualImage(result.residual_png);
+    state.analysis = {
+      sessionId: result.session_id,
+      rawPngBytes: result.raw_png,
+      residualPngBytes: result.residual_png,
+      residualImage: residualLoaded.image,
+      residualUrl: residualLoaded.url,
+      overlayPngBytes: null,
+      topCropPngBytes: null,
+      bottomCropPngBytes: null,
+      selection: cloneSelection(result.selection_response?.selection),
+      selectionSummary: null,
+    };
+    state.residualImage = residualLoaded.image;
+
+    await applySelectionResponse(result.selection_response, { suppressLog: true });
+    log("분석이 완료되었습니다. 주황색 가이드 원을 확인한 뒤, 오버레이 확대창에서 상단/하단을 직접 선택해 주세요.");
+  } catch (error) {
+    log(`분석 실패: ${normalizeRuntimeErrorMessage(error)}`);
+    if (shouldReportConsoleError(error)) console.error(error);
+  } finally {
+    setBusy(false);
+    updateCounts();
+  }
+}
+
+async function resetSelection() {
+  if (!state.analysis?.sessionId) return;
+  try {
+    setBusy(true);
+    await updateSelectionOnPython({ top: null, bottom: null });
+    log("선택을 초기화했습니다.");
+  } catch (error) {
+    log(`선택 초기화 실패: ${normalizeRuntimeErrorMessage(error)}`);
+    if (shouldReportConsoleError(error)) console.error(error);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function getImageCoordsFromEvent(imageElement, event) {
+  if (!imageElement || !imageElement.naturalWidth || !imageElement.naturalHeight) return null;
+  const rect = imageElement.getBoundingClientRect();
+  if (!rect.width || !rect.height) return null;
+  const x = ((event.clientX - rect.left) / rect.width) * imageElement.naturalWidth;
+  const y = ((event.clientY - rect.top) / rect.height) * imageElement.naturalHeight;
+  return {
+    x_px: Math.max(0, Math.min(imageElement.naturalWidth - 1, x)),
+    y_px: Math.max(0, Math.min(imageElement.naturalHeight - 1, y)),
+  };
+}
+
+async function updateSelectionFromImagePoint(imagePoint, options = {}) {
+  if (!state.analysis?.sessionId || !imagePoint) return;
+  const slot = getActiveSlotKey();
+  const response = await window.vholeTemplateBridge.updateSelectionFromPoint(
+    state.analysis.sessionId,
+    slot,
+    imagePoint.x_px,
+    imagePoint.y_px,
+    false,
+  );
+  if (!response || !response.selection_summary) {
+    throw new Error("선택 결과를 갱신하지 못했습니다.");
+  }
+  await applySelectionResponse(response, options);
+}
+
+async function handleOverlayImageClick(event) {
+  if (!elements.overlayPreview.src) return;
+  openZoomModal(elements.overlayPreview.src, "가이드 오버레이 확대 보기", {
+    pickEnabled: Boolean(state.analysis?.sessionId),
+    mode: "overlay-pick",
+  });
+}
+
+async function handleZoomViewportClick(event) {
+  if (!elements.zoomModal.classList.contains("is-open") || !state.zoomPickEnabled) return;
+  if (state.zoomSuppressClick) {
+    state.zoomSuppressClick = false;
+    return;
+  }
+  if (state.isRunning || !state.analysis?.sessionId) return;
+  const imagePoint = getZoomImageCoordsFromEvent(event);
+  if (!imagePoint) return;
+  const slotLabel = getActiveSlotLabel();
+  try {
+    setBusy(true);
+    await updateSelectionFromImagePoint(imagePoint, { suppressLog: true });
+    log(`${slotLabel} 위치를 확대 이미지에서 업데이트했습니다.`);
+  } catch (error) {
+    log(`선택 업데이트 실패: ${normalizeRuntimeErrorMessage(error)}`);
+    if (shouldReportConsoleError(error)) console.error(error);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function buildExportMetadata() {
+  const naming = state.currentNamingParts || parseImageNamingParts(state.currentImageFile?.name || "");
+  return {
+    source_key: sanitizeFilenameComponent(elements.sourceKeyInput.value, "vhole_template"),
+    image_name: normalizeText(state.analysis?.selectionSummary?.image_name || state.currentImageFile?.name || ""),
+    product_name: naming.productName || null,
+    shot_code: naming.shotCode || null,
+    guide_circle: state.analysis?.selectionSummary?.guide_circle || null,
+    patch_size: state.analysis?.selectionSummary?.patch_size || null,
+    top: state.analysis?.selectionSummary?.top || null,
+    bottom: state.analysis?.selectionSummary?.bottom || null,
+    angle_gap_deg: state.analysis?.selectionSummary?.angle_gap_deg ?? null,
+  };
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function canvasToBlob(canvas, mimeType = "image/png") {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("캔버스를 내보내지 못했습니다."));
+    }, mimeType);
+  });
+}
+
+async function saveCurrentTemplates() {
+  if (!state.analysis?.selectionSummary?.top || !state.analysis?.selectionSummary?.bottom) {
+    log("상단/하단 선택이 모두 있어야 저장할 수 있습니다.");
+    return;
+  }
+
+  const naming = state.currentNamingParts || parseImageNamingParts(state.currentImageFile?.name || "");
+  const productKey = sanitizeFilenameComponent(elements.sourceKeyInput.value || naming.productName, "vhole_template");
+  const shotKey = sanitizeFilenameComponent(naming.shotCode || naming.stem, "image");
+  const topBlob = state.analysis?.topCropPngBytes
+    ? new Blob([state.analysis.topCropPngBytes], { type: "image/png" })
+    : null;
+  const bottomBlob = state.analysis?.bottomCropPngBytes
+    ? new Blob([state.analysis.bottomCropPngBytes], { type: "image/png" })
+    : null;
+
+  // Build vhole_angles.json with angle metadata for inference GT angle constraint
+  const summary = state.analysis?.selectionSummary || {};
+  const anglesData = {
+    source_key: productKey,
+    image_name: summary.image_name || "",
+    top_angle_deg: summary.top?.angle_deg ?? null,
+    bottom_angle_deg: summary.bottom?.angle_deg ?? null,
+    guide_circle: summary.guide_circle || null,
+  };
+  const anglesBlob = new Blob([JSON.stringify(anglesData, null, 2)], { type: "application/json" });
+
+  const files = [
+    { name: `${shotKey}_top.png`, blob: topBlob },
+    { name: `${shotKey}_bottom.png`, blob: bottomBlob },
+    { name: "vhole_angles.json", blob: anglesBlob },
+  ].filter((item) => item.blob);
+
+  const directoryPicker = window.showDirectoryPicker;
+  if (typeof directoryPicker === "function") {
+    try {
+      const rootDirectory = await directoryPicker({ id: "vhole_template_save_dir", startIn: "downloads" });
+      const directory = await rootDirectory.getDirectoryHandle(productKey, { create: true });
+      for (const file of files) {
+        const fileHandle = await directory.getFileHandle(file.name, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(file.blob);
+        await writable.close();
+      }
+      log(`템플릿 파일 ${files.length}개를 ${productKey} 폴더에 저장했습니다 (각도 메타 포함).`);
+      return;
+    } catch (error) {
+      const name = String(error?.name || "");
+      if (name !== "AbortError") {
+        log(`폴더 저장 실패, 다운로드로 대체합니다: ${error.message || error}`);
+      }
+    }
+  }
+
+  files.forEach((file) => downloadBlob(file.blob, `${productKey}_${file.name}`));
+  log(`템플릿 파일 ${files.length}개를 다운로드했습니다 (각도 메타 포함).`);
+}
+
+function handleSingleImageChange(event) {
+  const files = Array.from(event.target.files || []).filter((file) => file && file.type && file.type.startsWith("image/"));
+  state.singleImageFile = files[0] || null;
+  updateCurrentImage(state.singleImageFile);
+  if (state.singleImageFile) {
+    scheduleAutoAnalyze();
+  }
+}
+
+window.onVholeTemplatePyReady = function onVholeTemplatePyReady() {
+  state.pyReady = true;
+  elements.loadingOverlay.style.display = "none";
+  updateInteractionHint();
+  updateActionStates();
+  log("Python 엔진 로딩 완료 - 이미지를 선택하면 자동 분석됩니다.");
+  void triggerAutoAnalyze();
+};
+
+window.onVholeTemplatePyError = function onVholeTemplatePyError(message) {
+  showLoadingError(message);
+  log(`Python 초기화 실패: ${normalizeText(message || "알 수 없는 오류")}`);
+  updateActionStates();
+};
+
+elements.singleImageInput.addEventListener("change", handleSingleImageChange);
+if (elements.singleImageButton) {
+  elements.singleImageButton.addEventListener("click", () => elements.singleImageInput.click());
+}
+elements.resetSelectionButton.addEventListener("click", resetSelection);
+elements.saveTemplateButton.addEventListener("click", saveCurrentTemplates);
+elements.analysisSizeInput.addEventListener("change", () => {
+  if (!state.currentImageFile) return;
+  syncAnalysisSizeInput();
+  log("가이드 원 분석 크기를 바꿔 현재 이미지를 다시 분석합니다.");
+  scheduleAutoAnalyze();
+});
+elements.zoomTopSlotButton.addEventListener("click", () => setActiveSlot("top"));
+elements.zoomBottomSlotButton.addEventListener("click", () => setActiveSlot("bottom"));
+elements.rawPreview.addEventListener("click", () => openZoomModal(elements.rawPreview.src, "원본 이미지 확대 보기"));
+elements.overlayPreview.addEventListener("click", handleOverlayImageClick);
+elements.rawZoomButton.addEventListener("click", () => openZoomModal(elements.rawPreview.src, "원본 이미지 확대 보기"));
+elements.overlayZoomButton.addEventListener("click", () => openZoomModal(elements.overlayPreview.src, "가이드 오버레이 확대 보기", {
+  pickEnabled: Boolean(state.analysis?.sessionId),
+  mode: "overlay-pick",
+}));
+elements.zoomInButton.addEventListener("click", () => setZoomScale(state.zoomScale * 1.25));
+elements.zoomOutButton.addEventListener("click", () => setZoomScale(state.zoomScale / 1.25));
+elements.zoomResetButton.addEventListener("click", () => fitZoomToViewport());
+elements.zoomCloseButton.addEventListener("click", closeZoomModal);
+elements.zoomModal.querySelector(".zoom-backdrop").addEventListener("click", closeZoomModal);
+elements.zoomViewport.addEventListener("mousedown", beginZoomDrag);
+elements.zoomViewport.addEventListener("click", handleZoomViewportClick);
+window.addEventListener("mousemove", updateZoomDrag);
+window.addEventListener("mouseup", endZoomDrag);
+elements.zoomViewport.addEventListener("wheel", (event) => {
+  if (!elements.zoomModal.classList.contains("is-open")) return;
+  event.preventDefault();
+  setZoomScale(state.zoomScale * (event.deltaY < 0 ? 1.1 : 0.9), event.clientX, event.clientY);
+}, { passive: false });
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && elements.zoomModal.classList.contains("is-open")) closeZoomModal();
+});
+window.addEventListener("resize", () => {
+  if (!elements.zoomModal.classList.contains("is-open")) return;
+  if (Math.abs(state.zoomScale - state.zoomFitScale) < 1e-6) {
+    fitZoomToViewport();
+    return;
+  }
+  state.zoomFitScale = computeZoomFitScale();
+});
+
+updateMetricTable(null);
+clearResidualCanvas();
+updateCounts();
+  </script>
+
+  <py-config>
+packages = ["opencv-python", "numpy", "Pillow"]
+  </py-config>
+
+  <script type="py">
+from js import window, Object
+from pyodide import ffi
+import traceback
+
+"""PyScript bridge for the V-hole template crop demo page."""
+
+import io
+import json
+import math
+import uuid
+from dataclasses import dataclass
+
+import cv2
+import numpy as np
+from PIL import Image
+
+NUM_ANGLE_SAMPLES = 1440
+NUM_RADIUS_SAMPLES = 120
+INNER_RADIUS_RATIO = 0.952
+OUTER_RADIUS_RATIO = 0.988
+VHOLE_RATIO_TRIALS = (
+    (0.952, 0.988),
+    (0.940, 0.995),
+    (0.920, 1.000),
+)
+TOP_K_FREQUENCIES = 4
+TEMPLATE_HEIGHT = 15
+TEMPLATE_WIDTH = 33
+PREVIEW_CROP_SIZE = 33
+DEFAULT_ANALYSIS_SIZE = 1024
+MIN_ANALYSIS_SIZE = 256
+MAX_ANALYSIS_SIZE = 4096
+TOP_COLOR = (0, 215, 255)
+BOTTOM_COLOR = (255, 0, 255)
+GUIDE_COLOR = (50, 130, 255)
+POINT_COLOR = (60, 60, 255)
+
+_SESSIONS: dict[str, dict[str, object]] = {}
+
+
+@dataclass
+class Circle:
+    center_x_px: float
+    center_y_px: float
+    radius_px: float
+
+
+def image_bytes_to_gray(raw_bytes: bytes) -> np.ndarray:
+    rgba = Image.open(io.BytesIO(raw_bytes)).convert("RGBA")
+    background = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
+    composited = Image.alpha_composite(background, rgba)
+    return np.array(composited.convert("L"))
+
+
+def normalize_u8(image: np.ndarray) -> np.ndarray:
+    image = image.astype(np.float32)
+    image -= float(image.min())
+    max_value = float(image.max())
+    if max_value > 0.0:
+        image /= max_value
+    return np.clip(image * 255.0, 0, 255).astype(np.uint8)
+
+
+def png_bytes_from_image(image: np.ndarray) -> bytes:
+    ok, buffer = cv2.imencode(".png", image)
+    if not ok:
+        raise RuntimeError("Failed to encode PNG.")
+    return buffer.tobytes()
+
+
+def resize_for_analysis(gray: np.ndarray, max_size: int) -> tuple[np.ndarray, float]:
+    height, width = gray.shape
+    longest = max(height, width)
+    if longest <= max_size:
+        return gray.copy(), 1.0
+
+    scale = max_size / float(longest)
+    resized = cv2.resize(
+        gray,
+        (int(round(width * scale)), int(round(height * scale))),
+        interpolation=cv2.INTER_AREA,
+    )
+    return resized, scale
+
+
+def border_intensity_stats(gray: np.ndarray) -> tuple[float, float]:
+    height, width = gray.shape
+    border_width = max(12, int(min(height, width) * 0.04))
+    border_pixels = np.concatenate(
+        [
+            gray[:border_width, :].ravel(),
+            gray[-border_width:, :].ravel(),
+            gray[:, :border_width].ravel(),
+            gray[:, -border_width:].ravel(),
+        ]
+    ).astype(np.float32)
+    return float(np.mean(border_pixels)), float(np.percentile(border_pixels, 90))
+
+
+def is_white_background(gray: np.ndarray) -> bool:
+    border_mean, border_p90 = border_intensity_stats(gray)
+    return border_mean > 185.0 or border_p90 > 215.0
+
+
+def normalize_to_white_background(gray: np.ndarray) -> np.ndarray:
+    if is_white_background(gray):
+        return gray
+    return cv2.bitwise_not(gray)
+
+
+def estimate_bg_mode(gray: np.ndarray) -> int:
+    height, width = gray.shape
+    bw = max(12, int(min(height, width) * 0.04))
+    border = np.concatenate(
+        [
+            gray[:bw, :].ravel(),
+            gray[-bw:, :].ravel(),
+            gray[:, :bw].ravel(),
+            gray[:, -bw:].ravel(),
+        ]
+    )
+    hist, _ = np.histogram(border, bins=256, range=(0, 256))
+    return int(np.argmax(hist))
+
+
+def scale_to_255(gray: np.ndarray, bg_mode: int | None = None) -> np.ndarray:
+    if bg_mode is None:
+        bg_mode = estimate_bg_mode(gray)
+    if bg_mode >= 253:
+        return gray
+    ratio = 255.0 / max(bg_mode, 1)
+    scaled = gray.astype(np.float32) * ratio
+    return np.clip(scaled, 0, 255).astype(np.uint8)
+
+
+def correct_shading(gray: np.ndarray, ksize: int = 301, bg_mode: int | None = None) -> np.ndarray:
+    if bg_mode is None:
+        bg_mode = estimate_bg_mode(gray)
+    threshold = bg_mode - 5
+    product_mask = (gray < threshold).astype(np.float32)
+    if product_mask.sum() < 100:
+        return gray
+
+    gray_f = gray.astype(np.float32)
+    weighted = gray_f * product_mask
+    scale = 4
+    h, w = gray.shape
+    sh, sw = h // scale, w // scale
+    small_weighted = cv2.resize(weighted, (sw, sh), interpolation=cv2.INTER_AREA)
+    small_mask = cv2.resize(product_mask, (sw, sh), interpolation=cv2.INTER_AREA)
+    small_ksize = max(3, ksize // scale) | 1
+    blur_w_small = cv2.GaussianBlur(small_weighted, (small_ksize, small_ksize), 0)
+    blur_m_small = cv2.GaussianBlur(small_mask, (small_ksize, small_ksize), 0)
+    blur_weighted = cv2.resize(blur_w_small, (w, h), interpolation=cv2.INTER_LINEAR)
+    blur_mask = cv2.resize(blur_m_small, (w, h), interpolation=cv2.INTER_LINEAR)
+    blur = blur_weighted / np.maximum(blur_mask, 1e-5)
+
+    blur_mean = float(gray_f[gray < threshold].mean())
+    corrected = gray_f / np.maximum(blur, 1.0) * blur_mean
+    bg_mask = gray >= threshold
+    result = np.clip(corrected, 0, 255).astype(np.uint8)
+    result[bg_mask] = gray[bg_mask]
+    return result
+
+
+def percentile_stretch(
+    gray: np.ndarray,
+    target_p5: float = 50.0,
+    target_p95: float = 200.0,
+    bg_mode: int | None = None,
+) -> np.ndarray:
+    if bg_mode is None:
+        bg_mode = estimate_bg_mode(gray)
+    product_mask = gray < (bg_mode - 5)
+    if product_mask.sum() < 100:
+        return gray
+
+    product_pixels = gray[product_mask].astype(np.float32)
+    p5 = float(np.percentile(product_pixels, 5))
+    p95 = float(np.percentile(product_pixels, 95))
+    if p95 - p5 < 1:
+        return gray
+
+    scale = (target_p95 - target_p5) / (p95 - p5)
+    offset = target_p5 - p5 * scale
+    result = gray.astype(np.float32) * scale + offset
+    result[~product_mask] = 255
+    return np.clip(result, 0, 255).astype(np.uint8)
+
+
+def build_plate_roi_mask(gray: np.ndarray) -> np.ndarray:
+    height, width = gray.shape
+    total_area = height * width
+    best_mask = None
+    best_area = 0.0
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (51, 51))
+
+    if is_white_background(gray):
+        threshold_jobs = [
+            (cv2.THRESH_BINARY_INV, 180),
+            (cv2.THRESH_BINARY_INV, 190),
+            (cv2.THRESH_BINARY_INV, 200),
+            (cv2.THRESH_BINARY_INV, 210),
+            (cv2.THRESH_BINARY_INV, 220),
+            (cv2.THRESH_BINARY_INV, 230),
+        ]
+    else:
+        threshold_jobs = [
+            (cv2.THRESH_BINARY, 20),
+            (cv2.THRESH_BINARY, 40),
+            (cv2.THRESH_BINARY + cv2.THRESH_OTSU, 0),
+        ]
+
+    for threshold_type, threshold_value in threshold_jobs:
+        if threshold_type & cv2.THRESH_OTSU:
+            _, binary = cv2.threshold(gray, 0, 255, threshold_type)
+        else:
+            _, binary = cv2.threshold(gray, threshold_value, 255, threshold_type)
+
+        closed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
+        contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours:
+            continue
+
+        largest_contour = max(contours, key=cv2.contourArea)
+        area = float(cv2.contourArea(largest_contour))
+        if area <= total_area * 0.10 or area >= total_area * 0.95 or area <= best_area:
+            continue
+
+        best_area = area
+        best_mask = np.zeros(gray.shape, dtype=np.uint8)
+        cv2.drawContours(best_mask, [largest_contour], -1, 255, -1)
+        if area > total_area * 0.60:
+            break
+
+    if best_mask is None:
+        return np.full(gray.shape, 255, dtype=np.uint8)
+    return best_mask
+
+
+def build_mesh_morph_image(gray: np.ndarray, roi_mask: np.ndarray | None = None, kernel_size: int = 31) -> np.ndarray:
+    kernel_size = max(3, int(kernel_size))
+    if kernel_size % 2 == 0:
+        kernel_size += 1
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
+    background = cv2.morphologyEx(gray, cv2.MORPH_CLOSE, kernel)
+    mesh_detail = cv2.subtract(background, gray)
+    if roi_mask is not None:
+        mesh_detail = mesh_detail.copy()
+        mesh_detail[roi_mask == 0] = 0
+    if not np.any(mesh_detail):
+        return np.zeros_like(gray, dtype=np.uint8)
+    return cv2.normalize(mesh_detail, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+
+
+def build_hv_image(morph: np.ndarray, hv_kernel_len: int = 25) -> np.ndarray:
+    kh = cv2.getStructuringElement(cv2.MORPH_RECT, (hv_kernel_len, 1))
+    kv = cv2.getStructuringElement(cv2.MORPH_RECT, (1, hv_kernel_len))
+    return np.maximum(
+        cv2.morphologyEx(morph, cv2.MORPH_OPEN, kh),
+        cv2.morphologyEx(morph, cv2.MORPH_OPEN, kv),
+    )
+
+
+def preprocess_runtime_from_gray(raw_gray: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    gray = normalize_to_white_background(raw_gray)
+    bg_mode = estimate_bg_mode(gray)
+    gray = scale_to_255(gray, bg_mode=bg_mode)
+    gray = correct_shading(gray, bg_mode=estimate_bg_mode(gray))
+    gray = percentile_stretch(gray, bg_mode=estimate_bg_mode(gray))
+    roi_mask = build_plate_roi_mask(gray)
+    morph = build_mesh_morph_image(gray, roi_mask)
+    hv = build_hv_image(morph)
+    return gray, morph, hv
+
+
+def fit_circle_least_squares(points: np.ndarray) -> Circle:
+    x = points[:, 0]
+    y = points[:, 1]
+    a = np.column_stack([2.0 * x, 2.0 * y, np.ones(len(points))])
+    b = x * x + y * y
+    solution, *_ = np.linalg.lstsq(a, b, rcond=None)
+    center_x = float(solution[0])
+    center_y = float(solution[1])
+    radius = math.sqrt(float(solution[2] + center_x * center_x + center_y * center_y))
+    return Circle(center_x_px=center_x, center_y_px=center_y, radius_px=radius)
+
+
+def refine_circle_from_edges(gray_small: np.ndarray, seed_circle: Circle) -> Circle:
+    blurred = cv2.GaussianBlur(gray_small, (9, 9), 1.5)
+    edges = cv2.Canny(blurred, 80, 160)
+    ys, xs = np.where(edges > 0)
+    distances = np.hypot(xs - seed_circle.center_x_px, ys - seed_circle.center_y_px)
+    band = np.abs(distances - seed_circle.radius_px) <= max(8.0, seed_circle.radius_px * 0.03)
+    points = np.column_stack([xs[band], ys[band]]).astype(np.float64)
+    if len(points) < 300:
+        return seed_circle
+    return fit_circle_least_squares(points)
+
+
+def detect_contour_circle(gray_small: np.ndarray) -> Circle | None:
+    """Detect the plate circle with the same contour+ellipse heuristic used in preprocessing."""
+    h, w = gray_small.shape
+    min_r = min(h, w) * 0.35
+    max_r = min(h, w) * 0.55
+
+    blurred = cv2.GaussianBlur(gray_small, (5, 5), 1.5)
+    edges = cv2.Canny(blurred, 30, 100)
+    edges = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return None
+
+    best_ellipse = None
+    best_score = -1.0
+    for cnt in contours:
+        if len(cnt) < 5:
+            continue
+        ellipse = cv2.fitEllipse(cnt)
+        radius = (ellipse[1][0] + ellipse[1][1]) / 4.0
+        if radius < min_r or radius > max_r:
+            continue
+        perimeter = cv2.arcLength(cnt, True)
+        score = radius * perimeter
+        if score > best_score:
+            best_score = score
+            best_ellipse = ellipse
+
+    if best_ellipse is not None:
+        cx, cy = best_ellipse[0]
+        radius = (best_ellipse[1][0] + best_ellipse[1][1]) / 4.0
+        return Circle(float(cx), float(cy), float(radius))
+
+    largest = max(contours, key=cv2.contourArea)
+    if len(largest) >= 5:
+        ellipse = cv2.fitEllipse(largest)
+        cx, cy = ellipse[0]
+        radius = (ellipse[1][0] + ellipse[1][1]) / 4.0
+        return Circle(float(cx), float(cy), float(radius))
+    return None
+
+
+def detect_hough_circle(gray_small: np.ndarray) -> Circle:
+    blurred = cv2.GaussianBlur(gray_small, (9, 9), 1.5)
+    min_dim = min(gray_small.shape[:2])
+    min_radius = int(min_dim * 0.34)
+    max_radius = int(min_dim * 0.49)
+
+    detected: Circle | None = None
+    for param2 in (55, 50, 45, 40, 35, 30, 25):
+        circles = cv2.HoughCircles(
+            blurred,
+            cv2.HOUGH_GRADIENT,
+            dp=1.2,
+            minDist=max(200, min_dim // 4),
+            param1=100,
+            param2=param2,
+            minRadius=min_radius,
+            maxRadius=max_radius,
+        )
+        if circles is None:
+            continue
+        candidate = max(circles[0], key=lambda row: row[2])
+        detected = Circle(
+            center_x_px=float(candidate[0]),
+            center_y_px=float(candidate[1]),
+            radius_px=float(candidate[2]),
+        )
+        break
+
+    if detected is None:
+        raise RuntimeError("Guide circle detection failed.")
+    return refine_circle_from_edges(gray_small, detected)
+
+
+def detect_guide_circle_small(gray_small: np.ndarray) -> Circle:
+    contour_circle = detect_contour_circle(gray_small)
+    if contour_circle is not None:
+        return contour_circle
+    return detect_hough_circle(gray_small)
+
+
+def detect_guide_circle_full(gray: np.ndarray, analysis_size: int) -> Circle:
+    gray_small, scale = resize_for_analysis(gray, analysis_size)
+    circle_small = detect_guide_circle_small(gray_small)
+    return Circle(
+        center_x_px=circle_small.center_x_px / scale,
+        center_y_px=circle_small.center_y_px / scale,
+        radius_px=circle_small.radius_px / scale,
+    )
+
+
+def reconstruct_periodic_rows(polar: np.ndarray, top_k: int) -> np.ndarray:
+    polar_f = polar.astype(np.float32)
+    recon = np.zeros_like(polar_f)
+    for row_index, row in enumerate(polar_f):
+        centered = row - float(np.mean(row))
+        fft = np.fft.rfft(centered)
+        magnitudes = np.abs(fft)
+        keep = np.zeros_like(fft, dtype=bool)
+        keep[0] = True
+        if len(magnitudes) > 1:
+            positive = np.arange(1, len(magnitudes))
+            strongest = positive[np.argsort(magnitudes[positive])[-top_k:]]
+            keep[strongest] = True
+        filtered = np.where(keep, fft, 0)
+        recon_row = np.fft.irfft(filtered, n=row.size).real + float(np.mean(row))
+        recon[row_index] = recon_row
+    return recon
+
+
+def build_annulus_residual_for_circle(
+    gray: np.ndarray,
+    circle: Circle,
+    inner_ratio: float,
+    outer_ratio: float,
+) -> dict[str, object]:
+    angle_values_deg = np.linspace(0.0, 360.0, NUM_ANGLE_SAMPLES, endpoint=False)
+    radius_values = np.linspace(
+        circle.radius_px * float(inner_ratio),
+        circle.radius_px * float(outer_ratio),
+        NUM_RADIUS_SAMPLES,
+    )
+    theta = np.deg2rad(angle_values_deg)[None, :]
+    rr = radius_values[:, None]
+    map_x = (circle.center_x_px + rr * np.cos(theta)).astype(np.float32)
+    map_y = (circle.center_y_px + rr * np.sin(theta)).astype(np.float32)
+    polar = cv2.remap(
+        gray,
+        map_x,
+        map_y,
+        interpolation=cv2.INTER_LINEAR,
+        borderMode=cv2.BORDER_REFLECT,
+    )
+    periodic = reconstruct_periodic_rows(polar, TOP_K_FREQUENCIES)
+    residual = np.abs(polar.astype(np.float32) - periodic.astype(np.float32))
+    residual = (residual - float(residual.mean())) / (float(residual.std()) + 1e-6)
+    return {
+        "inner_ratio": float(inner_ratio),
+        "outer_ratio": float(outer_ratio),
+        "angle_values_deg": angle_values_deg,
+        "radius_values": radius_values,
+        "polar": polar,
+        "residual": residual,
+        "wrapped_residual": pad_wrap_columns(residual, TEMPLATE_WIDTH),
+    }
+
+
+def build_annulus_trials(
+    gray: np.ndarray,
+    analysis_size: int,
+) -> tuple[Circle, list[dict[str, object]]]:
+    circle = detect_guide_circle_full(gray, analysis_size)
+    trials: list[dict[str, object]] = []
+    for inner_ratio, outer_ratio in VHOLE_RATIO_TRIALS:
+        trials.append(build_annulus_residual_for_circle(gray, circle, inner_ratio, outer_ratio))
+    return circle, trials
+
+
+def pad_wrap_columns(image: np.ndarray, pad_cols: int) -> np.ndarray:
+    return np.hstack([image[:, -pad_cols:], image, image[:, :pad_cols]])
+
+
+def wrap_angle_index(angle_index: int) -> int:
+    return int(angle_index) % NUM_ANGLE_SAMPLES
+
+
+def clamp_patch_row_index(row_index: int) -> int:
+    min_row = TEMPLATE_HEIGHT // 2
+    max_row = NUM_RADIUS_SAMPLES - TEMPLATE_HEIGHT // 2 - 1
+    return max(min_row, min(max_row, int(row_index)))
+
+
+def normalize_selection_payload(selection_payload: dict[str, object] | None) -> dict[str, dict[str, int] | None]:
+    payload = selection_payload if isinstance(selection_payload, dict) else {}
+    normalized: dict[str, dict[str, int | float] | None] = {"top": None, "bottom": None}
+    for key in ("top", "bottom"):
+        value = payload.get(key)
+        if not isinstance(value, dict):
+            continue
+        if "angle_index" not in value or "row_index" not in value:
+            continue
+        entry: dict[str, int | float] = {
+            "angle_index": wrap_angle_index(int(value["angle_index"])),
+            "row_index": clamp_patch_row_index(int(value["row_index"])),
+        }
+        if "x_px" in value:
+            entry["x_px"] = float(value["x_px"])
+        if "y_px" in value:
+            entry["y_px"] = float(value["y_px"])
+        if "angle_deg" in value:
+            entry["angle_deg"] = float(value["angle_deg"])
+        if "radius_px" in value:
+            entry["radius_px"] = float(value["radius_px"])
+        normalized[key] = entry
+    return normalized
+
+
+def extract_patch_raw(
+    wrapped_residual: np.ndarray,
+    row_index: int,
+    angle_index: int,
+    wrap_cols: int,
+) -> np.ndarray | None:
+    center_col = wrap_angle_index(angle_index) + wrap_cols
+    row_start = int(row_index) - TEMPLATE_HEIGHT // 2
+    row_end = int(row_index) + TEMPLATE_HEIGHT // 2 + 1
+    col_start = center_col - TEMPLATE_WIDTH // 2
+    col_end = center_col + TEMPLATE_WIDTH // 2 + 1
+    if row_start < 0 or row_end > wrapped_residual.shape[0]:
+        return None
+    patch = wrapped_residual[row_start:row_end, col_start:col_end]
+    if patch.shape != (TEMPLATE_HEIGHT, TEMPLATE_WIDTH):
+        return None
+    return patch.astype(np.float32)
+
+
+def normalize_patch(patch: np.ndarray | None) -> np.ndarray | None:
+    if patch is None:
+        return None
+    patch = patch.astype(np.float32)
+    return (patch - float(patch.mean())) / (float(patch.std()) + 1e-6)
+
+
+def extract_patch(
+    wrapped_residual: np.ndarray,
+    row_index: int,
+    angle_index: int,
+    wrap_cols: int,
+) -> np.ndarray | None:
+    return normalize_patch(extract_patch_raw(wrapped_residual, row_index, angle_index, wrap_cols))
+
+
+def build_selection_from_image_point(
+    session: dict[str, object],
+    x_px: float,
+    y_px: float,
+) -> dict[str, int | float]:
+    circle: Circle = session["circle"]
+    radius_values: np.ndarray = session["radius_values"]
+
+    dx = float(x_px) - float(circle.center_x_px)
+    dy = float(y_px) - float(circle.center_y_px)
+    angle_deg = math.degrees(math.atan2(dy, dx)) % 360.0
+    base_angle_index = wrap_angle_index(int(round(angle_deg / 360.0 * NUM_ANGLE_SAMPLES)))
+    click_radius_px = math.hypot(dx, dy)
+    base_row_index = clamp_patch_row_index(int(np.argmin(np.abs(radius_values - click_radius_px))))
+    return {
+        "angle_index": base_angle_index,
+        "row_index": base_row_index,
+        "x_px": float(x_px),
+        "y_px": float(y_px),
+        "angle_deg": float(angle_deg),
+        "radius_px": float(click_radius_px),
+    }
+
+
+def apply_opposite_selection(
+    selection_payload: dict[str, dict[str, int | float] | None],
+    slot: str,
+) -> dict[str, dict[str, int | float] | None]:
+    selection = normalize_selection_payload(selection_payload)
+    half_turn = NUM_ANGLE_SAMPLES // 2
+    if slot == "top" and selection["top"] is not None:
+        top_angle_index = int(selection["top"]["angle_index"])
+        top_row_index = int(selection["top"]["row_index"])
+        selection["bottom"] = {
+            "angle_index": wrap_angle_index(top_angle_index + half_turn),
+            "row_index": top_row_index,
+        }
+    elif slot == "bottom" and selection["bottom"] is not None:
+        bottom_angle_index = int(selection["bottom"]["angle_index"])
+        bottom_row_index = int(selection["bottom"]["row_index"])
+        selection["top"] = {
+            "angle_index": wrap_angle_index(bottom_angle_index + half_turn),
+            "row_index": bottom_row_index,
+        }
+    return selection
+
+
+def build_point_summary(
+    circle: Circle,
+    angle_values_deg: np.ndarray,
+    radius_values: np.ndarray,
+    selection: dict[str, int | float] | None,
+) -> dict[str, float | int] | None:
+    if not selection:
+        return None
+
+    angle_index = wrap_angle_index(selection["angle_index"])
+    row_index = clamp_patch_row_index(int(selection["row_index"]))
+    x_px = selection.get("x_px")
+    y_px = selection.get("y_px")
+    angle_deg = selection.get("angle_deg")
+    radius_px = selection.get("radius_px")
+
+    if x_px is None or y_px is None:
+        angle_deg = float(angle_values_deg[angle_index]) if angle_deg is None else float(angle_deg)
+        radius_px = float(radius_values[row_index]) if radius_px is None else float(radius_px)
+        x_px = float(circle.center_x_px + radius_px * math.cos(math.radians(angle_deg)))
+        y_px = float(circle.center_y_px + radius_px * math.sin(math.radians(angle_deg)))
+    else:
+        x_px = float(x_px)
+        y_px = float(y_px)
+        if angle_deg is None or radius_px is None:
+            dx = x_px - float(circle.center_x_px)
+            dy = y_px - float(circle.center_y_px)
+            angle_deg = math.degrees(math.atan2(dy, dx)) % 360.0 if angle_deg is None else float(angle_deg)
+            radius_px = math.hypot(dx, dy) if radius_px is None else float(radius_px)
+
+    return {
+        "angle_index": angle_index,
+        "row_index": row_index,
+        "angle_deg": float(angle_deg),
+        "radius_px": float(radius_px),
+        "x_px": x_px,
+        "y_px": y_px,
+    }
+
+
+def build_patch_preview(patch: np.ndarray | None) -> bytes | None:
+    if patch is None:
+        return None
+    preview = normalize_u8(patch)
+    return png_bytes_from_image(preview)
+
+
+def choose_best_trial_patch(
+    session: dict[str, object],
+    point: dict[str, float | int] | None,
+) -> tuple[np.ndarray | None, dict[str, float | int] | None]:
+    if point is None:
+        return None, None
+
+    circle: Circle = session["circle"]
+    annulus_trials: list[dict[str, object]] = session["annulus_trials"]
+    angle_deg = float(point["angle_deg"])
+    radius_px = float(point["radius_px"])
+    angle_index = wrap_angle_index(int(round(angle_deg / 360.0 * NUM_ANGLE_SAMPLES)))
+
+    best_payload: tuple[float, np.ndarray, dict[str, float | int]] | None = None
+    for trial_index, trial in enumerate(annulus_trials):
+        radius_values: np.ndarray = trial["radius_values"]
+        row_index = clamp_patch_row_index(int(np.argmin(np.abs(radius_values - radius_px))))
+        raw_patch = extract_patch_raw(
+            trial["wrapped_residual"],
+            row_index,
+            angle_index,
+            TEMPLATE_WIDTH,
+        )
+        if raw_patch is None:
+            continue
+
+        row_radius_px = float(radius_values[row_index])
+        radial_error_px = abs(radius_px - row_radius_px)
+        band_inner_px = float(radius_values[0])
+        band_outer_px = float(radius_values[-1])
+        band_width_px = max(0.0, band_outer_px - band_inner_px)
+        contains_point = band_inner_px <= radius_px <= band_outer_px
+        patch_energy = float(np.mean(np.abs(raw_patch)))
+        score = (
+            (1000.0 if contains_point else 0.0)
+            - radial_error_px
+            - 0.15 * band_width_px
+            + 0.10 * patch_energy
+            - 0.01 * float(trial_index)
+        )
+
+        patch = normalize_patch(raw_patch)
+        if patch is None:
+            continue
+        payload = {
+            "angle_index": int(angle_index),
+            "row_index": int(row_index),
+            "inner_ratio": float(trial["inner_ratio"]),
+            "outer_ratio": float(trial["outer_ratio"]),
+            "row_radius_px": row_radius_px,
+            "radial_error_px": float(radial_error_px),
+        }
+        if best_payload is None or score > best_payload[0]:
+            best_payload = (score, patch, payload)
+
+    if best_payload is None:
+        return None, None
+    return best_payload[1], best_payload[2]
+
+
+def build_source_crop_preview(
+    gray: np.ndarray,
+    point: dict[str, float | int] | None,
+) -> bytes | None:
+    if point is None:
+        return None
+
+    half = PREVIEW_CROP_SIZE // 2
+    center_x = int(round(float(point["x_px"])))
+    center_y = int(round(float(point["y_px"])))
+    padded = cv2.copyMakeBorder(gray, half, half, half, half, cv2.BORDER_REFLECT_101)
+    padded_x = center_x + half
+    padded_y = center_y + half
+    crop = padded[
+        padded_y - half : padded_y + half + 1,
+        padded_x - half : padded_x + half + 1,
+    ]
+    if crop.shape != (PREVIEW_CROP_SIZE, PREVIEW_CROP_SIZE):
+        return None
+    if crop.size == 0:
+        return None
+    return png_bytes_from_image(crop)
+
+
+def render_selection_overlay(
+    gray: np.ndarray,
+    circle: Circle,
+    top_point: dict[str, float | int] | None,
+    bottom_point: dict[str, float | int] | None,
+) -> np.ndarray:
+    overlay = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+    center_xy = (int(round(circle.center_x_px)), int(round(circle.center_y_px)))
+    radius = int(round(circle.radius_px))
+    cv2.circle(overlay, center_xy, radius, GUIDE_COLOR, 2, cv2.LINE_AA)
+    cv2.drawMarker(overlay, center_xy, GUIDE_COLOR, cv2.MARKER_CROSS, 22, 2)
+
+    for point in (top_point, bottom_point):
+        if point is None:
+            continue
+        xy = (int(round(point["x_px"])), int(round(point["y_px"])))
+        cv2.circle(overlay, xy, 3, POINT_COLOR, -1, cv2.LINE_AA)
+    if top_point is not None and bottom_point is not None:
+        top_xy = (int(round(top_point["x_px"])), int(round(top_point["y_px"])))
+        bottom_xy = (int(round(bottom_point["x_px"])), int(round(bottom_point["y_px"])))
+        cv2.line(overlay, top_xy, bottom_xy, POINT_COLOR, 1, cv2.LINE_AA)
+    return overlay
+
+
+def render_residual_image(residual: np.ndarray) -> np.ndarray:
+    residual_u8 = normalize_u8(np.abs(residual))
+    return cv2.applyColorMap(residual_u8, cv2.COLORMAP_TURBO)
+
+
+def build_selection_response(session_id: str, selection_payload: dict[str, object]) -> dict[str, object]:
+    session = _SESSIONS[session_id]
+    selection_payload = normalize_selection_payload(selection_payload)
+    circle = session["circle"]
+    raw_gray = session["raw_gray"]
+    angle_values_deg = session["angle_values_deg"]
+    radius_values = session["radius_values"]
+    top_point = build_point_summary(circle, angle_values_deg, radius_values, selection_payload.get("top"))
+    bottom_point = build_point_summary(circle, angle_values_deg, radius_values, selection_payload.get("bottom"))
+
+    top_patch, top_patch_meta = choose_best_trial_patch(session, top_point)
+    bottom_patch, bottom_patch_meta = choose_best_trial_patch(session, bottom_point)
+
+    if top_point is not None and top_patch_meta is not None:
+        top_point = {**top_point, **top_patch_meta}
+    if bottom_point is not None and bottom_patch_meta is not None:
+        bottom_point = {**bottom_point, **bottom_patch_meta}
+
+    overlay = render_selection_overlay(raw_gray, circle, top_point, bottom_point)
+    angle_gap_deg = None
+    if top_point is not None and bottom_point is not None:
+        angle_gap_deg = abs(
+            ((float(bottom_point["angle_deg"]) - float(top_point["angle_deg"]) + 180.0) % 360.0) - 180.0
+        )
+
+    summary = {
+        "image_name": session["image_name"],
+        "guide_circle": {
+            "center_x_px": float(circle.center_x_px),
+            "center_y_px": float(circle.center_y_px),
+            "radius_px": float(circle.radius_px),
+        },
+        "patch_size": {
+            "width": TEMPLATE_WIDTH,
+            "height": TEMPLATE_HEIGHT,
+        },
+        "residual_shape": {
+            "width": NUM_ANGLE_SAMPLES,
+            "height": NUM_RADIUS_SAMPLES,
+        },
+        "top": top_point,
+        "bottom": bottom_point,
+        "angle_gap_deg": angle_gap_deg,
+    }
+
+    return {
+        "session_id": session_id,
+        "selection": selection_payload,
+        "overlay_png": png_bytes_from_image(overlay),
+        "top_crop_png": build_patch_preview(top_patch),
+        "bottom_crop_png": build_patch_preview(bottom_patch),
+        "top_preview_png": build_source_crop_preview(raw_gray, top_point),
+        "bottom_preview_png": build_source_crop_preview(raw_gray, bottom_point),
+        "selection_summary": summary,
+    }
+
+
+def analyze_image(
+    image_bytes: bytes,
+    image_name: str,
+    analysis_size: int = DEFAULT_ANALYSIS_SIZE,
+) -> dict[str, object]:
+    analysis_size = int(analysis_size or DEFAULT_ANALYSIS_SIZE)
+    analysis_size = max(MIN_ANALYSIS_SIZE, min(MAX_ANALYSIS_SIZE, analysis_size))
+    raw_gray = image_bytes_to_gray(image_bytes)
+    _, _, hv_gray = preprocess_runtime_from_gray(raw_gray)
+    circle = detect_guide_circle_full(raw_gray, analysis_size)
+    annulus_trials = [
+        build_annulus_residual_for_circle(hv_gray, circle, inner_ratio, outer_ratio)
+        for inner_ratio, outer_ratio in VHOLE_RATIO_TRIALS
+    ]
+    default_trial = annulus_trials[0]
+    angle_values_deg = default_trial["angle_values_deg"]
+    radius_values = default_trial["radius_values"]
+    polar = default_trial["polar"]
+    residual = default_trial["residual"]
+
+    session_id = uuid.uuid4().hex[:12]
+    _SESSIONS[session_id] = {
+        "image_name": image_name,
+        "raw_gray": raw_gray,
+        "hv_gray": hv_gray,
+        "circle": circle,
+        "annulus_trials": annulus_trials,
+        "angle_values_deg": angle_values_deg,
+        "radius_values": radius_values,
+        "wrapped_residual": default_trial["wrapped_residual"],
+        "residual": residual,
+        "polar": polar,
+    }
+
+    initial_selection = {"top": None, "bottom": None}
+    _SESSIONS[session_id]["selection"] = normalize_selection_payload(initial_selection)
+    selection_response = build_selection_response(session_id, initial_selection)
+    return {
+        "session_id": session_id,
+        "image_name": image_name,
+        "raw_png": png_bytes_from_image(raw_gray),
+        "residual_png": png_bytes_from_image(render_residual_image(residual)),
+        "selection_response": selection_response,
+    }
+
+
+def update_selection(session_id: str, selection_json: str) -> dict[str, object]:
+    if session_id not in _SESSIONS:
+        raise RuntimeError("Session not found.")
+    selection_payload = json.loads(selection_json)
+    normalized = normalize_selection_payload(selection_payload)
+    _SESSIONS[session_id]["selection"] = normalized
+    return build_selection_response(session_id, normalized)
+
+
+def update_selection_from_point(
+    session_id: str,
+    slot: str,
+    x_px: float,
+    y_px: float,
+    auto_opposite: bool = False,
+) -> dict[str, object]:
+    if session_id not in _SESSIONS:
+        raise RuntimeError("Session not found.")
+
+    slot_key = "bottom" if str(slot).lower() == "bottom" else "top"
+    session = _SESSIONS[session_id]
+    selection = normalize_selection_payload(session.get("selection"))
+    selection[slot_key] = build_selection_from_image_point(session, float(x_px), float(y_px))
+    if auto_opposite:
+        selection = apply_opposite_selection(selection, slot_key)
+
+    session["selection"] = selection
+    return build_selection_response(session_id, selection)
+
+try:
+    async def _bridge_analyze(image_bytes_proxy, image_name, analysis_size):
+        image_bytes = bytes(image_bytes_proxy)
+        result = analyze_image(
+            image_bytes=image_bytes,
+            image_name=str(image_name),
+            analysis_size=int(analysis_size),
+        )
+        return ffi.to_js(result, dict_converter=Object.fromEntries, depth=6)
+
+    async def _bridge_update_selection(session_id, selection_json):
+        result = update_selection(str(session_id), str(selection_json))
+        return ffi.to_js(result, dict_converter=Object.fromEntries, depth=6)
+
+    async def _bridge_update_selection_from_point(session_id, slot, x_px, y_px, auto_opposite):
+        result = update_selection_from_point(
+            str(session_id),
+            str(slot),
+            float(x_px),
+            float(y_px),
+            bool(auto_opposite),
+        )
+        return ffi.to_js(result, dict_converter=Object.fromEntries, depth=6)
+
+    _bridge = window.Object.new()
+    _bridge.analyzeImage = ffi.create_proxy(_bridge_analyze)
+    _bridge.updateSelection = ffi.create_proxy(_bridge_update_selection)
+    _bridge.updateSelectionFromPoint = ffi.create_proxy(_bridge_update_selection_from_point)
+    window.vholeTemplateBridge = _bridge
+    window.onVholeTemplatePyReady()
+except Exception as error:
+    window.console.error("V-hole template Python init failed:", error)
+    window.console.error(traceback.format_exc())
+    if hasattr(window, "onVholeTemplatePyError"):
+        window.onVholeTemplatePyError(str(error))
+  </script>
+</body>
+</html>

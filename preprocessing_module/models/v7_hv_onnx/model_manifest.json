@@ -1,0 +1,60 @@
+{
+  "model": "V7 Hybrid HV export",
+  "trained_on": "vhole_v7_data_hv",
+  "num_images": 49,
+  "num_vholes": 98,
+  "device": "cuda",
+  "elapsed_sec": 2850.3678985019214,
+  "weights": {
+    "stage1_yolo": "yolo_best.pt",
+    "stage2_triangle_pose": "tip_model.pth"
+  },
+  "visualizations": {
+    "full_overlay": "visualizations/full_overlay_jpg",
+    "zoom_review": "visualizations/zoom_review",
+    "contact_sheet": "visualizations/summary_sheets/final_model_zoom_contact_sheet.jpg",
+    "three_way_review_sheets": "visualizations/three_way_review_sheets",
+    "metrics": {
+      "images_within_5px": "49/49",
+      "num_tips": 98,
+      "mean_error_px": 1.2209446482053108,
+      "median_error_px": 1.0449768131372696,
+      "max_error_px": 3.44906565735838
+    }
+  },
+  "config": {
+    "PATCH_SIZE": 192,
+    "HM_SIZE": 96,
+    "HM_SIGMA": 5.0,
+    "NUM_KEYPOINTS": 3,
+    "JITTER": 60,
+    "SAMPLES_PER_TIP": 500,
+    "EPOCHS": 120,
+    "YOLO_IMGSZ": 1280,
+    "YOLO_EPOCHS": 100,
+    "YOLO_CONF": 0.05,
+    "YOLO_TOP_K": 6,
+    "TOP_PAIRS": 3,
+    "REFINE_ALPHA": 0.3,
+    "REFINE_MIN_CORNER_CONF": 0.25,
+    "REFINE_MAX_SHIFT": 12.0
+  },
+  "onnx": {
+    "stage2_tip_onnx": "tip_model.onnx",
+    "opset": 17,
+    "stage2_input": [
+      1,
+      1,
+      192,
+      192
+    ],
+    "stage2_output": [
+      1,
+      3,
+      96,
+      96
+    ],
+    "stage1_input_imgsz": 1280,
+    "stage1_yolo_onnx": "yolo_vhole.onnx"
+  }
+}

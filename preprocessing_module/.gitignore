@@ -1,0 +1,39 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Local data and generated review outputs
+Raw Data/
+data/
+outputs/
+prototype-output/
+review_images/
+intermediates/
+
+# Training/runtime artifacts that should not be committed by accident
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.onnx.data
+*.log
+stage1_yolo/
+vhole_cv_v7_hybrid*/
+training/vhole_cv_v7_hybrid*/
+training/visualizations/
+training/stage1_yolo/
+training/train_export.log
+
+# Local notebooks and scratch files
+*.ipynb_checkpoints/
+scratch/
+tmp/
+
+# Measurement data folders
+vhole_hv_crops/
+vhole_v7_data_hv/

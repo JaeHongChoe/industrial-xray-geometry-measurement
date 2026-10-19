@@ -1,0 +1,8 @@
+torch
+timm
+tqdm
+ultralytics
+onnx
+onnxruntime
+opencv-python
+numpy

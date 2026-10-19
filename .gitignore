@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+
+# Python
+**/__pycache__/
+*.pyc
+*.pyo
+
+# POC 템플릿/결과 자산
+poc_sample_page/templates/
+
+# 계측 모듈 실행 산출물
+standalone_algorithm_work/
+vhole_hv_crops/
+preprocessing_module/standalone_algorithm_work/
+preprocessing_module/vhole_hv_crops/
+preprocessing_module/Raw Data/
+preprocessing_module/run_output/
+preprocessing_module/vhole_output/
